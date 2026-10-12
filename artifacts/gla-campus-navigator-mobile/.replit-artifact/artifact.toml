@@ -1,0 +1,24 @@
+kind = "mobile"
+previewPath = "/gla-campus-navigator-mobile/"
+title = "GLA Campus Navigator — Android Preview"
+description = "An Android-first Expo companion preview for GLA Campus Navigator, providing a native app shell around the installable campus map and walking-route experience."
+version = "1.0.0"
+id = "artifacts/gla-campus-navigator-mobile"
+router = "expo-domain"
+
+[[services]]
+name = "expo"
+ensurePreviewReachable = "/status"
+paths = [ "/gla-campus-navigator-mobile/" ]
+localPort = 19475
+
+[services.development]
+run = "pnpm --filter @workspace/gla-campus-navigator-mobile run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/gla-campus-navigator-mobile", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/gla-campus-navigator-mobile", "run", "serve" ]
+
+[services.env]
+PORT = "19475"
+BASE_PATH = "/gla-campus-navigator-mobile/"

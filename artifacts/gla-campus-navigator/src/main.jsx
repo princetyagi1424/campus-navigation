@@ -1,16 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, Circle, useMap, useMapEvents } from 'react-leaflet';
-import L from 'leaflet';
-import { Navigation, MapPin, LocateFixed, Search, ArrowUpDown, Footprints, Clock3, Route, X, Crosshair, GraduationCap, Locate, ChevronRight, Info, LoaderCircle, ShieldCheck, ExternalLink } from 'lucide-react';
-import 'leaflet/dist/leaflet.css';
+import { Navigation, MapPin, LocateFixed, Search, ArrowUpDown, Footprints, Clock3, Route, X, Crosshair, GraduationCap, Locate, ChevronRight, Info, LoaderCircle, ShieldCheck, ExternalLink, Download, Layers } from 'lucide-react';
 import './style.css';
 import { haversine, nodeDistance, nearestGraphNode, dijkstra, graphInstructions } from './routing-core.js';
+import CampusMap from './CampusMap.jsx';
 
 // Approximate campus map center only. Popular-place coordinates are never fabricated.
 const CAMPUS = [27.605, 77.594];
 const CAMPUS_BOUNDS = { south: 27.59, west: 77.58, north: 27.62, east: 77.61 };
 const CAMPUS_RADIUS_M = 2200;
+const isEmbeddedShell = new URLSearchParams(window.location.search).get('native') === '1';
 const OVERPASS_ENDPOINTS = [
   'https://overpass-api.de/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter',
@@ -23,24 +22,6 @@ const geocodeCache = new Map();
 const reverseCache = new Map();
 let nominatimQueue = Promise.resolve();
 let lastNominatimRequestAt = 0;
-
-const icon = (symbol, color) => L.divIcon({ className: 'custom-pin-wrap', html: `<div class="pin ${color}"><span>${symbol}</span></div>`, iconSize: [36, 42], iconAnchor: [18, 39], popupAnchor: [0, -36] });
-const startIcon = icon('A', 'start-pin');
-const endIcon = icon('B', 'end-pin');
-const gpsIcon = icon('➤', 'gps-pin');
-
-function MapClickHandler({ mode, onPick }) {
-  useMapEvents({ click(e) { if (mode) onPick(mode, [e.latlng.lat, e.latlng.lng]); } });
-  return null;
-}
-function MapFocus({ point, route, focusKey }) {
-  const map = useMap();
-  useEffect(() => {
-    if (route?.length > 1) map.fitBounds(route, { padding: [42, 42], maxZoom: 19 });
-    else if (point) map.flyTo(point, 18, { duration: 0.55 });
-  }, [point, route, focusKey, map]);
-  return null;
-}
 
 const fmtDistance = m => m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(2)} km`;
 const fmtTime = seconds => {
@@ -202,7 +183,39 @@ function App() {
   const [mapPoint, setMapPoint] = useState(CAMPUS);
   const [focusKey, setFocusKey] = useState(0);
   const [gpsAccuracy, setGpsAccuracy] = useState(null);
+  const [map3D, setMap3D] = useState(true);
+  const [installPromptEvent, setInstallPromptEvent] = useState(null);
+  const [installHelpOpen, setInstallHelpOpen] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
   const searchRequest = useRef(0);
+
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`, { scope: import.meta.env.BASE_URL }).catch(error => console.error('App shell could not be cached:', error));
+    }
+    setIsInstalled(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
+    const captureInstallPrompt = event => { event.preventDefault(); setInstallPromptEvent(event); };
+    const markInstalled = () => { setIsInstalled(true); setInstallPromptEvent(null); };
+    window.addEventListener('beforeinstallprompt', captureInstallPrompt);
+    window.addEventListener('appinstalled', markInstalled);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', captureInstallPrompt);
+      window.removeEventListener('appinstalled', markInstalled);
+    };
+  }, []);
+
+  async function installApp() {
+    if (!installPromptEvent) { setInstallHelpOpen(true); return; }
+    try {
+      await installPromptEvent.prompt();
+      const choice = await installPromptEvent.userChoice;
+      if (choice?.outcome === 'accepted') setIsInstalled(true);
+      setInstallPromptEvent(null);
+    } catch (error) {
+      console.error('The browser could not open its install prompt:', error);
+      setInstallHelpOpen(true);
+    }
+  }
 
   const popular = useMemo(() => [
     { name: 'GLA University Main Gate', query: 'GLA University main gate, Mathura, Uttar Pradesh, India', subtitle: 'Campus entrance' },
@@ -297,7 +310,7 @@ function App() {
   return <div className="app-shell">
     <header className="topbar">
       <div className="brand"><div className="brand-mark"><GraduationCap size={22}/></div><div><div className="brand-title">GLA <span>Campus Navigator</span></div><div className="brand-sub">YOUR CAMPUS. YOUR WAY.</div></div></div>
-      <div className="top-status"><span className="live-dot"/> OpenStreetMap <span className="top-divider">·</span> Pedestrian routing</div>
+      <div className="header-actions"><div className="top-status"><span className="live-dot"/> OpenStreetMap <span className="top-divider">·</span> Pedestrian routing</div>{!isInstalled && !isEmbeddedShell && <button className="install-app-btn" onClick={installApp}><Download size={15}/><span>Install app</span></button>}</div>
     </header>
     <main className="workspace">
       <aside className="sidebar">
@@ -320,13 +333,14 @@ function App() {
         <div className="sidebar-foot"><Info size={14}/><span>Campus paths may be incomplete. Verify before walking. GPS and selected coordinates are sent to public map services for routing/search.</span></div>
       </aside>
       <section className="map-area">
-        <div className="map-toolbar"><div className="map-title"><span className="map-title-icon"><MapPin size={17}/></span><div><b>GLA University</b><small>Mathura, Uttar Pradesh, India</small></div></div><button className="locate-map-btn" onClick={() => from ? focusPoint(from) : useGPS()}><Locate size={16}/><span>My location</span></button></div>
+        <div className="map-toolbar"><div className="map-title"><span className="map-title-icon"><MapPin size={17}/></span><div><b>GLA University</b><small>Mathura, Uttar Pradesh, India</small></div></div><div className="map-toolbar-actions"><button className={`map-3d-toggle${map3D ? ' active' : ''}`} onClick={() => setMap3D(value => !value)} aria-pressed={map3D}><Layers size={16}/><span>{map3D ? '3D buildings' : '2D map'}</span></button><button className="locate-map-btn" onClick={() => from ? focusPoint(from) : useGPS()}><Locate size={16}/><span>My location</span></button></div></div>
         {pickMode && <div className="map-instruction"><Crosshair size={16}/><span>Tap the map to set your <b>{pickMode === 'from' ? 'starting point' : 'destination'}</b></span><button onClick={() => setPickMode(null)} aria-label="Cancel map selection"><X size={15}/></button></div>}
-        <div className="map-frame"><MapContainer center={CAMPUS} zoom={16} scrollWheelZoom={true} zoomControl={false} className="leaflet-map"><TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors' url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"/><MapClickHandler mode={pickMode} onPick={onMapPick}/><MapFocus point={mapPoint} route={route?.coordinates} focusKey={focusKey}/>{from && <Marker position={from} icon={gpsAccuracy ? gpsIcon : startIcon}><Popup><b>Start:</b> {fromText}</Popup></Marker>}{from && gpsAccuracy && <Circle center={from} radius={gpsAccuracy} pathOptions={{ color: '#326ff0', fillColor: '#326ff0', fillOpacity: 0.08, weight: 1 }} />}{to && <Marker position={to} icon={endIcon}><Popup><b>Destination:</b> {toText}</Popup></Marker>}{route && <Polyline positions={route.coordinates} pathOptions={{color:'#2268f5',weight:6,opacity:0.9,lineCap:'round',lineJoin:'round'}}/>}</MapContainer><div className="map-legend"><span><i className="legend-dot green"/> Start</span><span><i className="legend-dot red"/> Destination</span><span><i className="legend-line"/> Walking route</span></div><button className="map-recenter" onClick={() => focusPoint(from || CAMPUS)} title="Recenter map" aria-label="Recenter map"><LocateFixed size={19}/></button></div>
+        <div className="map-frame"><CampusMap from={from} to={to} route={route} gpsAccuracy={gpsAccuracy} mapPoint={mapPoint} focusKey={focusKey} pickMode={pickMode} is3D={map3D} onPick={onMapPick}/><div className="map-legend"><span><i className="legend-dot green"/> Start</span><span><i className="legend-dot red"/> Destination</span><span><i className="legend-line"/> Walking route</span></div><button className="map-recenter" onClick={() => focusPoint(from || CAMPUS)} title="Recenter map" aria-label="Recenter map"><LocateFixed size={19}/></button></div>
         <div className="map-bottom"><div className="map-bottom-left"><span className="map-bottom-icon"><Footprints size={17}/></span><div><b>{route ? `${fmtDistance(route.distance)} walking route` : 'Explore the campus map'}</b><small>{route ? `${fmtTime(route.duration)} on foot · ${route.shortest ? 'shortest mapped distance' : 'recommended route'}` : (pickMode ? `Tap map to choose ${pickMode === 'from' ? 'start' : 'destination'}` : notice)}</small></div></div>{route && <button className="clear-route" onClick={() => {setRoute(null);setShowSteps(false);}}>Clear route <X size={14}/></button>}</div>
       </section>
     </main>
-    <footer className="footer"><span>GLA CAMPUS NAVIGATOR <span className="footer-dot">·</span> STUDENT PROJECT</span><span>Map data © OpenStreetMap contributors · <a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noreferrer">Report a map issue</a></span></footer>
+    <footer className="footer"><span>GLA CAMPUS NAVIGATOR <span className="footer-dot">·</span> STUDENT PROJECT</span><span>© OpenFreeMap · © OpenMapTiles · © OpenStreetMap contributors · <a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noreferrer">Report a map issue</a></span></footer>
+    {installHelpOpen && <div className="install-help-backdrop" onMouseDown={event => {if (event.target === event.currentTarget) setInstallHelpOpen(false);}}><section className="install-help" role="dialog" aria-modal="true" aria-labelledby="install-help-title"><button className="install-help-close" onClick={() => setInstallHelpOpen(false)} aria-label="Close install instructions"><X size={18}/></button><span className="install-help-icon"><Download size={20}/></span><h2 id="install-help-title">Add GLA Campus Navigator</h2><p>Install this website on your device for a home-screen app experience. An internet connection is still needed for live maps and routing.</p><div><b>Android / Chrome</b><span>Open the browser menu and choose “Install app” or “Add to Home screen”.</span></div><div><b>iPhone / iPad</b><span>In Safari, tap Share, then choose “Add to Home Screen”.</span></div><button className="install-help-done" onClick={() => setInstallHelpOpen(false)}>Got it</button></section></div>}
   </div>;
 }
 
