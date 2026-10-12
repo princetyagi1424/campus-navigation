@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "GLA Campus Navigator"
+description = "A campus map and route-finding app for GLA University, helping students and visitors search campus places and navigate between them."
+version = "1.0.0"
+id = "artifacts/gla-campus-navigator"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23310
+
+[services.development]
+run = "pnpm --filter @workspace/gla-campus-navigator run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/gla-campus-navigator", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/gla-campus-navigator/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23310"
+BASE_PATH = "/"
