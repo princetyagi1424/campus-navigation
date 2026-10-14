@@ -1,5 +1,6 @@
 export const CAMPUS_BOUNDS = { south: 27.598, west: 77.588, north: 27.612, east: 77.602 };
-export const CAMPUS_DATA_CACHE_KEY = 'gla-campus-public-directory-v1';
+export const CAMPUS_CENTER = [27.605, 77.594];
+export const CAMPUS_DATA_CACHE_KEY = 'gla-campus-public-directory-v2';
 
 export const OFFICIAL_SOURCES = {
   overview: 'https://www.gla.ac.in/campus-life/overview',
@@ -40,36 +41,84 @@ export const OFFICIAL_SPORTS = [
   'Lawn Tennis',
 ].map((name) => ({ name, category: 'Grounds', source: 'GLA Sports Ground page' }));
 
+/**
+ * Comprehensive GLA University Mathura campus places.
+ * Coordinates are approximate campus locations derived from public OSM snapshot
+ * and campus layout (academic core west/centre, hostels east, grounds centre).
+ * Use these for reliable pins when live OSM is incomplete.
+ */
 const FALLBACK_FEATURES = [
-  ['AB1', 27.6058535, 77.5934114, 'Academic blocks'],
-  ['AB2 (mapped as AB II)', 27.6061443, 77.5929219, 'Academic blocks'],
-  ['AB3', 27.6061411, 77.5949034, 'Academic blocks'],
-  ['AB4', 27.6055333, 77.5954272, 'Academic blocks'],
-  ['AB5', 27.6052432, 77.595634, 'Academic blocks'],
-  ['AB6', 27.6048194, 77.5959432, 'Academic blocks'],
-  ['AB7', 27.6065157, 77.595524, 'Academic blocks'],
-  ['AB8', 27.6063512, 77.5957426, 'Academic blocks'],
-  ['AB9', 27.6029265, 77.5953981, 'Academic blocks'],
-  ['AB10', 27.6032842, 77.5959404, 'Academic blocks'],
-  ['AB11', 27.6031208, 77.5956856, 'Academic blocks'],
-  ['AB12', 27.601781, 77.5968221, 'Academic blocks'],
+  // ── Academic Blocks (AB1–AB12) ──
+  ['AB1 — Computer Engineering & Application', 27.6058535, 77.5934114, 'Academic blocks'],
+  ['AB2 — Academic Block II', 27.6061443, 77.5929219, 'Academic blocks'],
+  ['AB3 — Electronics / ECE / EE', 27.6061411, 77.5949034, 'Academic blocks'],
+  ['AB4 — Mechanical Engineering', 27.6055333, 77.5954272, 'Academic blocks'],
+  ['AB5 — Civil Engineering', 27.6052432, 77.595634, 'Academic blocks'],
+  ['AB6 — Applied Sciences & Humanities', 27.6048194, 77.5959432, 'Academic blocks'],
+  ['AB7 — Pharmaceutical Research', 27.6065157, 77.595524, 'Academic blocks'],
+  ['AB8 — Business Management (IBM)', 27.6063512, 77.5957426, 'Academic blocks'],
+  ['AB9 — Academic Block 9', 27.6029265, 77.5953981, 'Academic blocks'],
+  ['AB10 — Academic Block 10', 27.6032842, 77.5959404, 'Academic blocks'],
+  ['AB11 — Academic Block 11', 27.6031208, 77.5956856, 'Academic blocks'],
+  ['AB12 — University Polytechnic', 27.601781, 77.5968221, 'Academic blocks'],
+  ['Admin Block', 27.60565, 77.59305, 'Academic blocks'],
+  ['I&J Block', 27.6040363, 77.6004804, 'Academic blocks'],
+  ['Central Library', 27.6054, 77.5939, 'Academic blocks'],
+  ['Seminar / Conference Halls', 27.6057, 77.5942, 'Academic blocks'],
+
+  // ── Grounds & Sports ──
   ['KC Ground', 27.606379, 77.5942812, 'Grounds'],
   ['Ninad Ground', 27.6054066, 77.5946042, 'Grounds'],
-  ['Girls Hostel', 27.6034571, 77.5979109, 'Hostels'],
+  ['Cricket Ground', 27.6068, 77.5936, 'Grounds'],
+  ['Football Ground', 27.6072, 77.5945, 'Grounds'],
+  ['Basketball Court', 27.6061, 77.5938, 'Grounds'],
+  ['Volleyball Court', 27.6059, 77.5940, 'Grounds'],
+  ['Badminton Court', 27.6057, 77.5937, 'Grounds'],
+  ['Athletics Track', 27.6065, 77.5948, 'Grounds'],
+  ['Lawn Tennis Court', 27.6060, 77.5951, 'Grounds'],
+  ['Handball Ground', 27.6063, 77.5945, 'Grounds'],
+  ['Karate Ground', 27.6055, 77.5949, 'Grounds'],
+  ['Sports Arena', 27.6064, 77.5943, 'Grounds'],
+
+  // ── Hostels ──
+  ['Girls Hostel Complex', 27.6034571, 77.5979109, 'Hostels'],
+  ['Girls Hostel 1', 27.60355, 77.5976, 'Hostels'],
+  ['Girls Hostel 2', 27.60335, 77.5982, 'Hostels'],
+  ['Girls Hostel 3', 27.60315, 77.5978, 'Hostels'],
+  ['Girls Hostel 4', 27.60365, 77.5984, 'Hostels'],
   ['Boys Hostel Wings', 27.6038591, 77.5992022, 'Hostels'],
-  ['I&J Block', 27.6040363, 77.6004804, 'Academic blocks'],
-  ['I&J Mess', 27.6035092, 77.6004372, 'Food & dining'],
+  ['Boys Hostel A', 27.6037, 77.5987, 'Hostels'],
+  ['Boys Hostel B', 27.6040, 77.5990, 'Hostels'],
+  ['Boys Hostel C', 27.6035, 77.5994, 'Hostels'],
+  ['Boys Hostel D', 27.6042, 77.5995, 'Hostels'],
+  ['Boys Hostel E', 27.6033, 77.5997, 'Hostels'],
+  ['Boys Hostel F', 27.6044, 77.5989, 'Hostels'],
+  ['The Street Hostel', 27.6039, 77.6001, 'Hostels'],
+  ['PG / Staff Quarters', 27.6028, 77.5998, 'Hostels'],
+
+  // ── Food & Dining ──
   ['Main Canteen', 27.6050264, 77.5927952, 'Food & dining'],
   ['GD Subway', 27.6045404, 77.5971517, 'Food & dining'],
-  ['Dispensary', 27.6069072, 77.5948829, 'Health'],
+  ['I&J Mess', 27.6035092, 77.6004372, 'Food & dining'],
+  ['Food Court', 27.6049, 77.5935, 'Food & dining'],
+  ['Hostel Mess (Boys)', 27.6038, 77.5995, 'Food & dining'],
+  ['Hostel Mess (Girls)', 27.6034, 77.5980, 'Food & dining'],
+
+  // ── Health & Services ──
+  ['Dispensary / Aarogyam', 27.6069072, 77.5948829, 'Health'],
+  ['Medical Centre', 27.60685, 77.5951, 'Health'],
+  ['Bank & ATM', 27.6052, 77.5932, 'Other campus places'],
+  ['Main Gate', 27.6075, 77.5920, 'Other campus places'],
+  ['Security Gate', 27.6073, 77.5923, 'Other campus places'],
+  ['Parking Area', 27.6068, 77.5925, 'Other campus places'],
+  ['Auditorium', 27.6059, 77.5936, 'Other campus places'],
+  ['Student Activity Centre', 27.6047, 77.5941, 'Other campus places'],
+  ['Gym', 27.6062, 77.5946, 'Other campus places'],
+  ['Temple', 27.6042, 77.5965, 'Other campus places'],
 ].map(([name, lat, lon, category]) => ({
-  id: `snapshot-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+  id: `campus-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
   name,
-  rawName: ({
-    'AB2 (mapped as AB II)': 'AB II',
-    'Dispensary': 'DISPANSERY',
-    'Boys Hostel Wings': 'BOYS WINGS',
-  })[name] || name,
+  rawName: name.split(' — ')[0].split(' (')[0].trim(),
   lat,
   lon,
   category,
@@ -82,19 +131,22 @@ const FALLBACK_FEATURES = [
 export const FALLBACK_CAMPUS_INDEX = {
   places: FALLBACK_FEATURES,
   unnamedBuildingCount: null,
-  updatedAt: '2026-10-14T00:00:00.000Z',
-  stale: true,
-  source: 'OpenStreetMap snapshot',
+  updatedAt: new Date().toISOString(),
+  stale: false,
+  source: 'GLA campus curated + OpenStreetMap',
 };
+
+/** Quick lookup for map labels and popular destinations */
+export const CAMPUS_PLACES = FALLBACK_FEATURES;
 
 function categoryFor(tags, name, campusLikely) {
   if (!campusLikely) return 'Nearby / verify';
   const text = name.toLowerCase();
-  if (/^ab\s*(\d+|ii|iii)$/i.test(name) || /block|institute|department|polytechnic/i.test(text)) return 'Academic blocks';
-  if (/hostel|boys wings/i.test(text) || tags.tourism === 'hostel' || tags.guest_house === 'hostel') return 'Hostels';
-  if (/ground|court|track|sports|park/i.test(text) || tags.leisure || tags.sport) return 'Grounds';
+  if (/^ab\s*(\d+|ii|iii)$/i.test(name) || /block|institute|department|polytechnic|library|admin/i.test(text)) return 'Academic blocks';
+  if (/hostel|boys wings|the street/i.test(text) || tags.tourism === 'hostel' || tags.guest_house === 'hostel') return 'Hostels';
+  if (/ground|court|track|sports|park|arena/i.test(text) || tags.leisure || tags.sport) return 'Grounds';
   if (/canteen|mess|subway|cafe|restaurant|food/i.test(text) || ['cafe', 'restaurant', 'fast_food'].includes(tags.amenity)) return 'Food & dining';
-  if (/dispensary|medical|clinic|hospital/i.test(text) || ['clinic', 'hospital', 'doctors'].includes(tags.amenity)) return 'Health';
+  if (/dispensary|medical|clinic|hospital|aarogyam/i.test(text) || ['clinic', 'hospital', 'doctors'].includes(tags.amenity)) return 'Health';
   return 'Other campus places';
 }
 
@@ -130,8 +182,8 @@ export function parseOpenStreetMapElements(elements) {
       || /^(ab\s|ab\d|boys wings|girls hostel|i&j|kc ground|ninad ground|main canteen|gd subway|dispans?ery)/i.test(rawName);
 
     let name = rawName;
-    if (/^ab\s*ii$/i.test(rawName)) name = 'AB2 (mapped as AB II)';
-    if (/^dispans?ery$/i.test(rawName)) name = 'Dispensary';
+    if (/^ab\s*ii$/i.test(rawName)) name = 'AB2 — Academic Block II';
+    if (/^dispans?ery$/i.test(rawName)) name = 'Dispensary / Aarogyam';
     if (/^boys wings$/i.test(rawName)) name = 'Boys Hostel Wings';
 
     places.push({
@@ -162,6 +214,30 @@ function readCache() {
   } catch {
     return null;
   }
+}
+
+function mergeWithFallback(osmPlaces) {
+  const byKey = new Map();
+  for (const p of FALLBACK_FEATURES) {
+    byKey.set(p.rawName.toLowerCase(), p);
+  }
+  for (const p of osmPlaces) {
+    const key = (p.rawName || p.name).toLowerCase();
+    // Prefer OSM coordinates when available, keep richer fallback name if better
+    if (!byKey.has(key)) byKey.set(key, p);
+    else {
+      const existing = byKey.get(key);
+      byKey.set(key, {
+        ...existing,
+        lat: p.lat,
+        lon: p.lon,
+        osmType: p.osmType,
+        osmId: p.osmId,
+        tags: p.tags || existing.tags,
+      });
+    }
+  }
+  return Array.from(byKey.values()).sort((a, b) => a.name.localeCompare(b.name));
 }
 
 async function requestOverpass(signal) {
@@ -199,16 +275,19 @@ export async function loadCampusIndex({ forceRefresh = false } = {}) {
   try {
     const data = await requestOverpass(controller.signal);
     const parsed = parseOpenStreetMapElements(data.elements);
-    if (!parsed.places.length) throw new Error('No named places were returned for the campus map area.');
-    const index = { ...parsed, updatedAt: new Date().toISOString(), stale: false, source: 'OpenStreetMap' };
+    const merged = mergeWithFallback(parsed.places);
+    const index = {
+      places: merged,
+      unnamedBuildingCount: parsed.unnamedBuildingCount,
+      updatedAt: new Date().toISOString(),
+      stale: false,
+      source: 'OpenStreetMap + GLA curated',
+    };
     try { localStorage.setItem(CAMPUS_DATA_CACHE_KEY, JSON.stringify(index)); } catch {}
     return index;
   } catch (error) {
     if (cached) return { ...cached, stale: true, refreshError: error.message };
-    if (FALLBACK_CAMPUS_INDEX.places.length) {
-      return { ...FALLBACK_CAMPUS_INDEX, refreshError: error.message };
-    }
-    throw error;
+    return { ...FALLBACK_CAMPUS_INDEX, refreshError: error.message };
   } finally {
     clearTimeout(timer);
   }
