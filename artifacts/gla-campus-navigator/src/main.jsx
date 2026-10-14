@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Navigation, MapPin, LocateFixed, Search, ArrowUpDown, Footprints, Clock3, Route, X, Crosshair, GraduationCap, Locate, ChevronRight, Info, LoaderCircle, ShieldCheck, ExternalLink, Download, Layers } from 'lucide-react';
+import { Navigation, MapPin, LocateFixed, Search, ArrowUpDown, Footprints, Clock3, Route, X, Crosshair, GraduationCap, Locate, ChevronRight, Info, LoaderCircle, ShieldCheck, BookOpen, ExternalLink, Download, Layers } from 'lucide-react';
 import './style.css';
 import { haversine, nodeDistance, nearestGraphNode, dijkstra, graphInstructions } from './routing-core.js';
 import CampusMap from './CampusMap.jsx';
+import CampusDirectory from './CampusDirectory.jsx';
 
 // Approximate campus map center only. Popular-place coordinates are never fabricated.
 const CAMPUS = [27.605, 77.594];
@@ -188,6 +189,7 @@ function App() {
   const [installPromptEvent, setInstallPromptEvent] = useState(null);
   const [installHelpOpen, setInstallHelpOpen] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [directoryOpen, setDirectoryOpen] = useState(false);
   const searchRequest = useRef(0);
 
   useEffect(() => {
@@ -250,6 +252,20 @@ function App() {
     }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 15000 });
   }, [setPoint]);
 
+  function chooseDirectoryPlace(place) {
+    const coordinates = [place.lat, place.lon];
+    setTo(coordinates);
+    setToText(place.name);
+    setMapPoint(coordinates);
+    setFocusKey(value => value + 1);
+    setGpsAccuracy(null);
+    setActiveField('to');
+    setPickMode(null);
+    setRoute(null);
+    setSearchResults([]);
+    setError('');
+  }
+
   async function searchPlace(q, field = activeField) {
     if (!q.trim()) { setError('Type a place name first.'); return; }
     const requestId = ++searchRequest.current;
@@ -311,7 +327,7 @@ function App() {
   return <div className="app-shell">
     <header className="topbar">
       <div className="brand"><div className="brand-mark"><GraduationCap size={22}/></div><div><div className="brand-title">GLA <span>Campus Navigator</span></div><div className="brand-sub">YOUR CAMPUS. YOUR WAY.</div></div></div>
-      <div className="header-actions"><div className="top-status"><span className="live-dot"/> OpenStreetMap <span className="top-divider">·</span> Pedestrian routing</div>{!isInstalled && !isEmbeddedShell && <button className="install-app-btn" onClick={installApp}><Download size={15}/><span>Install app</span></button>}</div>
+      <div className="header-actions"><div className="top-status"><span className="live-dot"/> OpenStreetMap <span className="top-divider">·</span> Pedestrian routing</div><button className="directory-app-btn" onClick={() => setDirectoryOpen(true)} aria-haspopup="dialog"><BookOpen size={15}/><span>Campus directory</span></button>{!isInstalled && !isEmbeddedShell && <button className="install-app-btn" onClick={installApp}><Download size={15}/><span>Install app</span></button>}</div>
     </header>
     <main className="workspace">
       <aside className="sidebar">
@@ -341,6 +357,7 @@ function App() {
       </section>
     </main>
     <footer className="footer"><span>GLA CAMPUS NAVIGATOR <span className="footer-dot">·</span> STUDENT PROJECT</span><span>© OpenFreeMap · © OpenMapTiles · © OpenStreetMap contributors · <a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noreferrer">Report a map issue</a></span></footer>
+    {directoryOpen && <CampusDirectory onClose={() => setDirectoryOpen(false)} onSelectPlace={chooseDirectoryPlace}/>}
     {installHelpOpen && <div className="install-help-backdrop" onMouseDown={event => {if (event.target === event.currentTarget) setInstallHelpOpen(false);}}><section className="install-help" role="dialog" aria-modal="true" aria-labelledby="install-help-title"><button className="install-help-close" onClick={() => setInstallHelpOpen(false)} aria-label="Close install instructions"><X size={18}/></button><span className="install-help-icon"><Download size={20}/></span><h2 id="install-help-title">Add GLA Campus Navigator</h2><p>Install this website on your device for a home-screen app experience. An internet connection is still needed for live maps and routing.</p><div><b>Android / Chrome</b><span>Open the browser menu and choose “Install app” or “Add to Home screen”.</span></div><div><b>iPhone / iPad</b><span>In Safari, tap Share, then choose “Add to Home Screen”.</span></div><button className="install-help-done" onClick={() => setInstallHelpOpen(false)}>Got it</button></section></div>}
   </div>;
 }
