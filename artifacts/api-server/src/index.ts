@@ -1,25 +1,25 @@
 import app from "./app";
 import { logger } from "./lib/logger";
 
-const rawPort = process.env["PORT"];
+// Vercel imports this module as the request handler. Export the Express app
+// and avoid binding a long-lived port inside its serverless runtime.
+export default app;
 
-if (!rawPort) {
-  throw new Error(
-    "PORT environment variable is required but was not provided.",
-  );
-}
+// Preserve the existing standalone server behavior for local development.
+if (process.env.VERCEL !== "1") {
+  const rawPort = process.env["PORT"] ?? "3000";
+  const port = Number(rawPort);
 
-const port = Number(rawPort);
-
-if (Number.isNaN(port) || port <= 0) {
-  throw new Error(`Invalid PORT value: "${rawPort}"`);
-}
-
-app.listen(port, (err) => {
-  if (err) {
-    logger.error({ err }, "Error listening on port");
-    process.exit(1);
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    throw new Error(`Invalid PORT value: "${rawPort}"`);
   }
 
-  logger.info({ port }, "Server listening");
-});
+  const server = app.listen(port, () => {
+    logger.info({ port }, "Server listening");
+  });
+
+  server.on("error", (err) => {
+    logger.error({ err }, "Error listening on port");
+    process.exit(1);
+  });
+}

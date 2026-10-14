@@ -5,27 +5,27 @@ import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { mockupPreviewPlugin } from "./mockupPreviewPlugin";
 
-const rawPort = process.env.PORT;
-
-if (!rawPort) {
-  throw new Error(
-    "PORT environment variable is required but was not provided.",
-  );
-}
-
+// Vercel does not provide PORT during a static Vite build. Keep a safe local
+// default for development, while still honoring an explicitly configured port.
+const rawPort = process.env.PORT ?? "5173";
 const port = Number(rawPort);
 
-if (Number.isNaN(port) || port <= 0) {
+if (!Number.isInteger(port) || port < 1 || port > 65535) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
-const basePath = process.env.BASE_PATH;
-
-if (!basePath) {
-  throw new Error(
-    "BASE_PATH environment variable is required but was not provided.",
-  );
+function normalizeBasePath(value: string | undefined, fallback: string): string {
+  if (!value?.trim()) return fallback;
+  const segment = value.trim().replace(/^\/+|\/+$/g, "");
+  return segment ? `/${segment}/` : "/";
 }
+
+// This app is mounted at /mockups on the shared Vercel Services domain.
+// Locally it remains available at / unless BASE_PATH is explicitly set.
+const basePath = normalizeBasePath(
+  process.env.BASE_PATH,
+  process.env.VERCEL ? "/mockups/" : "/",
+);
 
 export default defineConfig({
   base: basePath,
