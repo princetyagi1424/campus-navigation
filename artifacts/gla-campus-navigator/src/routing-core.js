@@ -7,14 +7,19 @@ export const haversine = (a, b) => {
 
 export function nodeDistance(a, b) { return haversine([a.lat, a.lon], [b.lat, b.lon]); }
 
-export function nearestGraphNode(point, graph, maxDistance = 35) {
+export function nearestGraphNode(point, graph, maxDistance = 80) {
   let best = null, bestDistance = Infinity;
   for (const [id, node] of graph.nodes) {
     if (!graph.adj.has(id)) continue;
     const d = haversine(point, [node.lat, node.lon]);
     if (d < bestDistance) { bestDistance = d; best = node; }
   }
-  if (!best || bestDistance > maxDistance) throw new Error(`No mapped walking path is within ${Math.round(maxDistance)} m of the selected point (nearest is ${Math.round(bestDistance)} m). Select a point closer to a visible path.`);
+  if (!best || bestDistance > maxDistance) {
+    throw new Error(
+      `No mapped walking path is within ${Math.round(maxDistance)} m of the selected point (nearest is ${Math.round(bestDistance)} m). ` +
+      `Select a point closer to a visible road/path, or use the public route fallback.`
+    );
+  }
   return { node: best, connectorDistance: bestDistance };
 }
 
@@ -60,7 +65,12 @@ export function dijkstra(graph, startId, endId) {
       }
     }
   }
-  if (!distances.has(endId)) throw new Error('The selected points are not connected by the mapped walking network. Campus paths may be missing from OpenStreetMap.');
+  if (!distances.has(endId)) {
+    throw new Error(
+      'The selected points are not connected by the mapped walking network. ' +
+      'Campus paths may be missing from OpenStreetMap — a recommended route will be tried instead.'
+    );
+  }
   const path = [endId]; let cursor = endId;
   while (cursor !== startId) {
     cursor = previous.get(cursor);
