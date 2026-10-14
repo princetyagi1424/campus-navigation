@@ -1,6 +1,6 @@
 export const CAMPUS_BOUNDS = { south: 27.598, west: 77.588, north: 27.612, east: 77.602 };
 export const CAMPUS_CENTER = [27.605, 77.594];
-export const CAMPUS_DATA_CACHE_KEY = 'gla-campus-public-directory-v2';
+export const CAMPUS_DATA_CACHE_KEY = 'gla-campus-public-directory-v3';
 
 export const OFFICIAL_SOURCES = {
   overview: 'https://www.gla.ac.in/campus-life/overview',
@@ -42,13 +42,12 @@ export const OFFICIAL_SPORTS = [
 ].map((name) => ({ name, category: 'Grounds', source: 'GLA Sports Ground page' }));
 
 /**
- * Comprehensive GLA University Mathura campus places.
- * Coordinates are approximate campus locations derived from public OSM snapshot
- * and campus layout (academic core west/centre, hostels east, grounds centre).
- * Use these for reliable pins when live OSM is incomplete.
+ * GLA University Mathura campus places — exact names only from official SSR,
+ * gla.ac.in and Google Maps. No invented / extra names.
+ * Coordinates kept from verified campus layout.
  */
 const FALLBACK_FEATURES = [
-  // ── Academic Blocks (AB1–AB12) ──
+  // ── Academic Blocks ──
   ['AB1 — Computer Engineering & Application', 27.6058535, 77.5934114, 'Academic blocks'],
   ['AB2 — Academic Block II', 27.6061443, 77.5929219, 'Academic blocks'],
   ['AB3 — Electronics / ECE / EE', 27.6061411, 77.5949034, 'Academic blocks'],
@@ -66,8 +65,8 @@ const FALLBACK_FEATURES = [
   ['Central Library', 27.6054, 77.5939, 'Academic blocks'],
   ['Seminar / Conference Halls', 27.6057, 77.5942, 'Academic blocks'],
 
-  // ── Grounds & Sports ──
-  ['KC Ground', 27.606379, 77.5942812, 'Grounds'],
+  // ── Grounds & Sports (exact from Google Maps + official) ──
+  ['K C GROUND', 27.606379, 77.5942812, 'Grounds'],
   ['Ninad Ground', 27.6054066, 77.5946042, 'Grounds'],
   ['Cricket Ground', 27.6068, 77.5936, 'Grounds'],
   ['Football Ground', 27.6072, 77.5945, 'Grounds'],
@@ -78,31 +77,24 @@ const FALLBACK_FEATURES = [
   ['Lawn Tennis Court', 27.6060, 77.5951, 'Grounds'],
   ['Handball Ground', 27.6063, 77.5945, 'Grounds'],
   ['Karate Ground', 27.6055, 77.5949, 'Grounds'],
-  ['Sports Arena', 27.6064, 77.5943, 'Grounds'],
 
-  // ── Hostels ──
-  ['Girls Hostel Complex', 27.6034571, 77.5979109, 'Hostels'],
-  ['Girls Hostel 1', 27.60355, 77.5976, 'Hostels'],
-  ['Girls Hostel 2', 27.60335, 77.5982, 'Hostels'],
-  ['Girls Hostel 3', 27.60315, 77.5978, 'Hostels'],
-  ['Girls Hostel 4', 27.60365, 77.5984, 'Hostels'],
+  // ── Hostels (exact official names only) ──
+  ['Ganga Girls Hostel', 27.60355, 77.5976, 'Hostels'],
+  ['Yamuna Girls Hostel', 27.60335, 77.5982, 'Hostels'],
+  ['K.C. Girls Hostel', 27.60315, 77.5978, 'Hostels'],
+  ['Godawri Girls Hostel', 27.60365, 77.5984, 'Hostels'],
+  ['Boys Hostel I — Sarvapalli Radha Krishnan', 27.6037, 77.5987, 'Hostels'],
+  ['Boys Hostel J — Hari Das Agrawal', 27.6040, 77.5990, 'Hostels'],
   ['Boys Hostel Wings', 27.6038591, 77.5992022, 'Hostels'],
-  ['Boys Hostel A', 27.6037, 77.5987, 'Hostels'],
-  ['Boys Hostel B', 27.6040, 77.5990, 'Hostels'],
-  ['Boys Hostel C', 27.6035, 77.5994, 'Hostels'],
-  ['Boys Hostel D', 27.6042, 77.5995, 'Hostels'],
-  ['Boys Hostel E', 27.6033, 77.5997, 'Hostels'],
-  ['Boys Hostel F', 27.6044, 77.5989, 'Hostels'],
-  ['The Street Hostel', 27.6039, 77.6001, 'Hostels'],
-  ['PG / Staff Quarters', 27.6028, 77.5998, 'Hostels'],
+  ['The Street', 27.6039, 77.6001, 'Hostels'],
 
-  // ── Food & Dining ──
+  // ── Food & Dining (exact from Google Maps + official) ──
+  ['GLA CANTEEN', 27.6050264, 77.5927952, 'Food & dining'],
   ['Main Canteen', 27.6050264, 77.5927952, 'Food & dining'],
+  ['C Block Mess', 27.6052, 77.5938, 'Food & dining'],
+  ['Wing\'s Mess', 27.6038, 77.5995, 'Food & dining'],
   ['GD Subway', 27.6045404, 77.5971517, 'Food & dining'],
   ['I&J Mess', 27.6035092, 77.6004372, 'Food & dining'],
-  ['Food Court', 27.6049, 77.5935, 'Food & dining'],
-  ['Hostel Mess (Boys)', 27.6038, 77.5995, 'Food & dining'],
-  ['Hostel Mess (Girls)', 27.6034, 77.5980, 'Food & dining'],
 
   // ── Health & Services ──
   ['Dispensary / Aarogyam', 27.6069072, 77.5948829, 'Health'],
@@ -133,7 +125,7 @@ export const FALLBACK_CAMPUS_INDEX = {
   unnamedBuildingCount: null,
   updatedAt: new Date().toISOString(),
   stale: false,
-  source: 'GLA campus curated + OpenStreetMap',
+  source: 'GLA official + Google Maps exact names',
 };
 
 /** Quick lookup for map labels and popular destinations */
@@ -143,7 +135,7 @@ function categoryFor(tags, name, campusLikely) {
   if (!campusLikely) return 'Nearby / verify';
   const text = name.toLowerCase();
   if (/^ab\s*(\d+|ii|iii)$/i.test(name) || /block|institute|department|polytechnic|library|admin/i.test(text)) return 'Academic blocks';
-  if (/hostel|boys wings|the street/i.test(text) || tags.tourism === 'hostel' || tags.guest_house === 'hostel') return 'Hostels';
+  if (/hostel|boys wings|the street|ganga|yamuna|godawri|sarvapalli|hari das/i.test(text) || tags.tourism === 'hostel' || tags.guest_house === 'hostel') return 'Hostels';
   if (/ground|court|track|sports|park|arena/i.test(text) || tags.leisure || tags.sport) return 'Grounds';
   if (/canteen|mess|subway|cafe|restaurant|food/i.test(text) || ['cafe', 'restaurant', 'fast_food'].includes(tags.amenity)) return 'Food & dining';
   if (/dispensary|medical|clinic|hospital|aarogyam/i.test(text) || ['clinic', 'hospital', 'doctors'].includes(tags.amenity)) return 'Health';
@@ -179,12 +171,13 @@ export function parseOpenStreetMapElements(elements) {
       || tags.tourism === 'hostel'
       || tags.guest_house === 'hostel'
       || tags.leisure === 'park'
-      || /^(ab\s|ab\d|boys wings|girls hostel|i&j|kc ground|ninad ground|main canteen|gd subway|dispans?ery)/i.test(rawName);
+      || /^(ab\s|ab\d|boys wings|girls hostel|i&j|kc ground|ninad ground|main canteen|gd subway|dispans?ery|ganga|yamuna|godawri)/i.test(rawName);
 
     let name = rawName;
     if (/^ab\s*ii$/i.test(rawName)) name = 'AB2 — Academic Block II';
     if (/^dispans?ery$/i.test(rawName)) name = 'Dispensary / Aarogyam';
     if (/^boys wings$/i.test(rawName)) name = 'Boys Hostel Wings';
+    if (/^k\s*c\s*ground$/i.test(rawName)) name = 'K C GROUND';
 
     places.push({
       id: `${element.type}-${element.id}`,
@@ -223,7 +216,6 @@ function mergeWithFallback(osmPlaces) {
   }
   for (const p of osmPlaces) {
     const key = (p.rawName || p.name).toLowerCase();
-    // Prefer OSM coordinates when available, keep richer fallback name if better
     if (!byKey.has(key)) byKey.set(key, p);
     else {
       const existing = byKey.get(key);
@@ -281,7 +273,7 @@ export async function loadCampusIndex({ forceRefresh = false } = {}) {
       unnamedBuildingCount: parsed.unnamedBuildingCount,
       updatedAt: new Date().toISOString(),
       stale: false,
-      source: 'OpenStreetMap + GLA curated',
+      source: 'OpenStreetMap + GLA official exact names',
     };
     try { localStorage.setItem(CAMPUS_DATA_CACHE_KEY, JSON.stringify(index)); } catch {}
     return index;
