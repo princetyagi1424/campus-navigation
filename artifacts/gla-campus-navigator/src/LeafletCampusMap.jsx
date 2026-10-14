@@ -6,6 +6,36 @@ import { CAMPUS_PLACES } from './campus-directory-data.js';
 
 const CAMPUS_CENTER = [27.605, 77.594];
 
+const LABEL_CSS = `
+.leaflet-tooltip.campus-place-label {
+  background: rgba(255,255,255,.94);
+  border: 0;
+  border-radius: 6px;
+  box-shadow: 0 1px 5px rgba(0,0,0,.2);
+  color: #1e293b;
+  font: 700 10px/1.2 Manrope, system-ui, sans-serif;
+  padding: 2px 7px;
+  white-space: nowrap;
+}
+.leaflet-tooltip.campus-place-label::before { display: none; }
+.campus-place-dot.leaflet-div-icon { background: transparent !important; border: 0 !important; }
+.campus-place-marker {
+  display: flex; flex-direction: column; align-items: center;
+  pointer-events: none; transform: translateY(-4px);
+}
+.campus-place-marker .campus-place-dot {
+  width: 11px; height: 11px; border-radius: 50%;
+  border: 2px solid #fff; box-shadow: 0 1px 5px rgba(0,0,0,.4);
+}
+.campus-place-marker .campus-place-name {
+  margin-top: 3px; padding: 2px 6px; border-radius: 6px;
+  background: rgba(255,255,255,.92); color: #1e293b;
+  font: 700 10px/1.2 Manrope, system-ui, sans-serif;
+  white-space: nowrap; box-shadow: 0 1px 4px rgba(0,0,0,.18);
+  max-width: 140px; overflow: hidden; text-overflow: ellipsis;
+}
+`;
+
 const startIcon = L.divIcon({
   html: '<span>A</span>',
   className: 'map-location-pin start',
@@ -58,6 +88,18 @@ function SyncViewport({ route, mapPoint, focusKey }) {
   return null;
 }
 
+function InjectLabelStyles() {
+  useEffect(() => {
+    if (document.getElementById('campus-place-label-css')) return undefined;
+    const style = document.createElement('style');
+    style.id = 'campus-place-label-css';
+    style.textContent = LABEL_CSS;
+    document.head.appendChild(style);
+    return undefined;
+  }, []);
+  return null;
+}
+
 export default function LeafletCampusMap({
   from,
   to,
@@ -76,6 +118,7 @@ export default function LeafletCampusMap({
       className={`leaflet-map-fallback${pickMode ? ' picking' : ''}`}
       aria-label="Interactive campus map"
     >
+      <InjectLabelStyles />
       <TileLayer
         url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
         maxZoom={19}
@@ -84,7 +127,6 @@ export default function LeafletCampusMap({
       <MapEvents pickMode={pickMode} onPick={onPick} />
       <SyncViewport route={route} mapPoint={mapPoint} focusKey={focusKey} />
 
-      {/* Permanent labels for all campus places */}
       {CAMPUS_PLACES.map((place) => (
         <Marker
           key={place.id}
