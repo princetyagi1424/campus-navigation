@@ -3,6 +3,7 @@ import { LngLatBounds, Map as MapLibreMap, Marker, NavigationControl, setWorkerU
 import mapLibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import LeafletCampusMap from './LeafletCampusMap.jsx';
+import { CAMPUS_PLACES } from './campus-directory-data.js';
 
 setWorkerUrl(mapLibreWorkerUrl);
 
@@ -52,6 +53,19 @@ function makePin(kind, label) {
   return element;
 }
 
+function makePlaceMarker(place) {
+  const el = document.createElement('div');
+  el.className = 'campus-place-marker';
+  const color =
+    place.category === 'Academic blocks' ? '#1d4ed8' :
+    place.category === 'Hostels' ? '#7c3aed' :
+    place.category === 'Grounds' ? '#15803d' :
+    place.category === 'Food & dining' ? '#c2410c' :
+    place.category === 'Health' ? '#b91c1c' : '#475569';
+  el.innerHTML = `<span class="campus-place-dot" style="background:${color}"></span><span class="campus-place-name">${place.rawName || place.name}</span>`;
+  return el;
+}
+
 export default function CampusMap({
   from,
   to,
@@ -73,6 +87,7 @@ export default function CampusMap({
   const [useRasterFallback, setUseRasterFallback] = useState(false);
   const fromMarkerRef = useRef(null);
   const toMarkerRef = useRef(null);
+  const placeMarkersRef = useRef([]);
   const latestPropsRef = useRef({ pickMode, onPick });
   const latestDataRef = useRef({ from, to, route, gpsAccuracy, is3D });
   latestPropsRef.current = { pickMode, onPick };
@@ -150,8 +165,8 @@ export default function CampusMap({
           layout: { 'line-cap': 'round', 'line-join': 'round' },
           paint: {
             'line-color': '#2268f5',
-            'line-width': ['interpolate', ['linear'], ['zoom'], 14, 4, 19, 7],
-            'line-opacity': 0.96,
+            'line-width': ['interpolate', ['linear'], ['zoom'], 14, 5, 19, 9],
+            'line-opacity': 0.98,
           },
         });
       }
@@ -170,6 +185,16 @@ export default function CampusMap({
           paint: { 'line-color': '#326ff0', 'line-width': 1.5, 'line-opacity': 0.65 },
         });
       }
+
+      // Place markers with names
+      placeMarkersRef.current.forEach((m) => m.remove());
+      placeMarkersRef.current = CAMPUS_PLACES.map((place) => {
+        const marker = new Marker({ element: makePlaceMarker(place), anchor: 'bottom' })
+          .setLngLat([place.lon, place.lat])
+          .addTo(map);
+        return marker;
+      });
+
       updateSources();
       setMapError('');
       setMapLoading(false);
@@ -184,14 +209,16 @@ export default function CampusMap({
       styleReadyRef.current = false;
       fromMarkerRef.current?.remove();
       toMarkerRef.current?.remove();
+      placeMarkersRef.current.forEach((m) => m.remove());
+      placeMarkersRef.current = [];
       map.remove();
       mapRef.current = null;
     };
-  }, [on3DAvailabilityChange]);
+  }, [on3DAvailabilityChange, updateSources]);
 
   useEffect(() => {
     updateSources();
-  }, [updateSources]);
+  }, [updateSources, route, from, gpsAccuracy]);
 
   useEffect(() => {
     const map = mapRef.current;
