@@ -150,7 +150,7 @@ export default function CampusNavigatorScreen() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  webSafeArea: { flex: 1 },
+  webSafeArea: { flex: 1, minHeight: '100vh' as unknown as number },
   header: { minHeight: 60, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, gap: 11 },
   brandMark: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   brandCopy: { flex: 1, justifyContent: 'center', gap: 2 },

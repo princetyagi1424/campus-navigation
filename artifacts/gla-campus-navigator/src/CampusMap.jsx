@@ -2,16 +2,22 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { LngLatBounds, Map as MapLibreMap, Marker, NavigationControl, setWorkerUrl } from 'maplibre-gl';
 import mapLibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import LeafletCampusMap from './LeafletCampusMap.jsx';
 
 setWorkerUrl(mapLibreWorkerUrl);
 
 const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
 const EMPTY_FEATURES = { type: 'FeatureCollection', features: [] };
 
-function makePointFeature(point) {
-  return point
-    ? { type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [point[1], point[0]] } }
-    : EMPTY_FEATURES;
+function hasWebGL2() {
+  try {
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('webgl2', { failIfMajorPerformanceCaveat: true });
+    context?.getExtension('WEBGL_lose_context')?.loseContext();
+    return Boolean(context);
+  } catch {
+    return false;
+  }
 }
 
 function makeRouteFeature(route) {
@@ -56,6 +62,7 @@ export default function CampusMap({
   pickMode,
   is3D,
   onPick,
+  on3DAvailabilityChange,
 }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
@@ -63,6 +70,7 @@ export default function CampusMap({
   const [styleReady, setStyleReady] = useState(false);
   const [mapLoading, setMapLoading] = useState(true);
   const [mapError, setMapError] = useState('');
+  const [useRasterFallback, setUseRasterFallback] = useState(false);
   const fromMarkerRef = useRef(null);
   const toMarkerRef = useRef(null);
   const latestPropsRef = useRef({ pickMode, onPick });
@@ -80,18 +88,33 @@ export default function CampusMap({
 
   useEffect(() => {
     if (!containerRef.current) return undefined;
-    const map = new MapLibreMap({
-      container: containerRef.current,
-      style: STYLE_URL,
-      center: [77.594, 27.605],
-      zoom: 16,
-      pitch: 58,
-      bearing: -22,
-      maxPitch: 75,
-      attributionControl: { compact: true },
-      dragRotate: true,
-      touchPitch: true,
-    });
+    if (!hasWebGL2()) {
+      on3DAvailabilityChange?.(false);
+      setUseRasterFallback(true);
+      setMapLoading(false);
+      return undefined;
+    }
+    let map;
+    try {
+      map = new MapLibreMap({
+        container: containerRef.current,
+        style: STYLE_URL,
+        center: [77.594, 27.605],
+        zoom: 16,
+        pitch: 58,
+        bearing: -22,
+        maxPitch: 75,
+        attributionControl: { compact: true },
+        dragRotate: true,
+        touchPitch: true,
+      });
+    } catch {
+      on3DAvailabilityChange?.(false);
+      setUseRasterFallback(true);
+      setMapLoading(false);
+      return undefined;
+    }
+    on3DAvailabilityChange?.(true);
     mapRef.current = map;
 
     map.addControl(new NavigationControl({ showCompass: true, showZoom: true, visualizePitch: true }), 'top-right');
@@ -164,7 +187,7 @@ export default function CampusMap({
       map.remove();
       mapRef.current = null;
     };
-  }, []);
+  }, [on3DAvailabilityChange]);
 
   useEffect(() => {
     updateSources();
@@ -223,6 +246,22 @@ export default function CampusMap({
     setMapError('');
     setMapLoading(true);
     map.setStyle(STYLE_URL);
+  }
+
+  if (useRasterFallback) {
+    return <>
+      <LeafletCampusMap
+        from={from}
+        to={to}
+        route={route}
+        gpsAccuracy={gpsAccuracy}
+        mapPoint={mapPoint}
+        focusKey={focusKey}
+        pickMode={pickMode}
+        onPick={onPick}
+      />
+      <div className="map-fallback-note" role="status">2D map shown; 3D buildings need WebGL2.</div>
+    </>;
   }
 
   return <>
