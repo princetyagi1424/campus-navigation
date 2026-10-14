@@ -10,8 +10,8 @@ test('OSM campus entries use feature centers and correct the visible AB II alias
   ]);
 
   assert.equal(result.places.length, 3);
-  assert.equal(result.places[0].name, 'AB2 (mapped as AB II)');
-  assert.equal(result.places.find((place) => place.rawName === 'DISPANSERY').name, 'Dispensary');
+  assert.equal(result.places[0].name, 'AB2 — Academic Block II');
+  assert.equal(result.places.find((place) => place.rawName === 'DISPANSERY').name, 'Dispensary / Aarogyam');
   assert.equal(result.places.find((place) => place.name === 'Girls Hostel').category, 'Hostels');
   assert.ok(result.places.every((place) => place.campusLikely));
 });
