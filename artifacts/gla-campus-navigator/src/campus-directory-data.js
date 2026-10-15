@@ -75,7 +75,7 @@ const RAW_PLACES = [
   ['Auditorium', 27.6059, 77.5936, 'Other campus places', { approx: true, subtitle: 'Events' }],
 
   // Grounds & sports (names from GLA's Sports Ground page; KC / Ninad are mapped in OSM)
-  ['KC Ground', 27.606379, 77.5942812, 'Grounds', { popular: true, subtitle: 'Sports' }],
+  ['K C Ground', 27.606379, 77.5942812, 'Grounds', { popular: true, subtitle: 'Sports', aliases: ['KC Ground', 'K C GROUND'] }],
   ['Ninad Ground', 27.6054066, 77.5946042, 'Grounds', { popular: true, subtitle: 'Sports' }],
   ['Cricket Ground', 27.6068, 77.5936, 'Grounds', { approx: true, subtitle: 'Sports' }],
   ['Football Ground', 27.6072, 77.5945, 'Grounds', { approx: true, subtitle: 'Sports' }],
@@ -89,10 +89,10 @@ const RAW_PLACES = [
 
   // Hostels — names from GLA's published hostel listings (4 girls' + 15 boys' hostels incl. Wings I–V).
   ['Girls Hostel', GIRLS_HOSTEL[0], GIRLS_HOSTEL[1], 'Hostels', { popular: true, subtitle: 'Girls hostel area', aliases: ['Girls Hostels'] }],
-  ['Ganga Hostel', 27.60364, 77.59769, 'Hostels', { approx: true, subtitle: 'Girls hostel' }],
-  ['Yamuna Hostel', 27.60364, 77.59813, 'Hostels', { approx: true, subtitle: 'Girls hostel' }],
-  ['Godawari Hostel', 27.60328, 77.59769, 'Hostels', { approx: true, subtitle: 'Girls hostel', aliases: ['Godavari Hostel'] }],
-  ['Kalpana Chawla Hostel', 27.60328, 77.59813, 'Hostels', { approx: true, subtitle: 'Girls hostel', aliases: ['Kalpan Chawla Hostel'] }],
+  ['Ganga Girls Hostel', 27.60364, 77.59769, 'Hostels', { approx: true, subtitle: 'Girls hostel', aliases: ['Ganga Hostel'] }],
+  ['Yamuna Girls Hostel', 27.60364, 77.59813, 'Hostels', { approx: true, subtitle: 'Girls hostel', aliases: ['Yamuna Hostel'] }],
+  ['Godawri Girls Hostel', 27.60328, 77.59769, 'Hostels', { approx: true, subtitle: 'Girls hostel', aliases: ['Godawari Hostel', 'Godavari Hostel', 'Godawari Girls Hostel'] }],
+  ['K.C. Girls Hostel', 27.60328, 77.59813, 'Hostels', { approx: true, subtitle: 'Girls hostel (Kalpana Chawla)', aliases: ['Kalpana Chawla Hostel', 'Kalpan Chawla Hostel', 'KC Girls Hostel'] }],
   ['Boys Hostel Wings', BOYS_WINGS[0], BOYS_WINGS[1], 'Hostels', { popular: true, subtitle: 'Boys hostel area (Wings I–V)', aliases: ['Boys Wings', 'Boys Hostel'] }],
   ['Boys Hostel Wing I', 27.60398, 77.59884, 'Hostels', { approx: true, subtitle: 'Boys hostel', aliases: ['Wing I'] }],
   ['Boys Hostel Wing II', 27.60398, 77.59902, 'Hostels', { approx: true, subtitle: 'Boys hostel', aliases: ['Wing II'] }],
@@ -102,8 +102,9 @@ const RAW_PLACES = [
   ['F Block Hostel', 27.6035, 77.5986, 'Hostels', { approx: true, subtitle: 'Boys hostel' }],
   ['G Block Hostel', 27.6035, 77.59885, 'Hostels', { approx: true, subtitle: 'Boys hostel' }],
   ['H Block Hostel', 27.6035, 77.5991, 'Hostels', { approx: true, subtitle: 'Boys hostel' }],
-  ['I Block Hostel', 27.6041, 77.6004, 'Hostels', { approx: true, subtitle: 'Boys hostel' }],
-  ['J Block Hostel', 27.60398, 77.60058, 'Hostels', { approx: true, subtitle: 'Boys hostel' }],
+  ['Boys Hostel I — Sarvapalli Radha Krishnan', 27.6041, 77.6004, 'Hostels', { approx: true, subtitle: 'Boys hostel (I Block)', aliases: ['I Block Hostel', 'Boys Hostel I'] }],
+  ['Boys Hostel J — Hari Das Agrawal', 27.60398, 77.60058, 'Hostels', { approx: true, subtitle: 'Boys hostel (J Block)', aliases: ['J Block Hostel', 'Boys Hostel J'] }],
+  ['The Street', 27.6039, 77.6001, 'Hostels', { approx: true, subtitle: 'Boys hostel (800-room street-style complex)', aliases: ['The Street Hostel'] }],
   ['X Block Hostel', 27.60328, 77.5995, 'Hostels', { approx: true, subtitle: 'Boys hostel' }],
   ['Sir Visvesvaraya Hostel', 27.6033, 77.5987, 'Hostels', { approx: true, subtitle: 'Boys hostel', aliases: ['Sir Vishveshwaraya Hostel', 'Visvesvaraya Hostel'] }],
   ['C.V. Raman Hostel', 27.6033, 77.599, 'Hostels', { approx: true, subtitle: 'Boys hostel', aliases: ['CV Raman Hostel'] }],
@@ -112,7 +113,9 @@ const RAW_PLACES = [
   ['Pt. Lokmani Sharma Hostel', 27.6031, 77.59915, 'Hostels', { approx: true, subtitle: 'Boys hostel', aliases: ['Lokmani Sharma Hostel'] }],
 
   // Food & dining
-  ['Main Canteen', 27.6050264, 77.5927952, 'Food & dining', { popular: true, subtitle: 'Food & dining' }],
+  ['GLA Canteen', 27.6050264, 77.5927952, 'Food & dining', { popular: true, subtitle: 'Food & dining', aliases: ['Main Canteen', 'GLA CANTEEN', 'Canteen'] }],
+  ['C Block Mess', 27.6052, 77.5938, 'Food & dining', { approx: true, subtitle: 'Mess' }],
+  ["Wing's Mess", 27.6038, 77.5995, 'Food & dining', { approx: true, subtitle: 'Mess', aliases: ['Wings Mess'] }],
   ['GD Subway', 27.6045404, 77.5971517, 'Food & dining', { popular: true, subtitle: 'Food court' }],
   ['I&J Mess', 27.6035092, 77.6004372, 'Food & dining', { subtitle: 'Mess' }],
 
@@ -220,7 +223,7 @@ function categoryFor(tags, name, campusLikely) {
   if (!campusLikely) return 'Nearby / verify';
   const text = name.toLowerCase();
   if (/^ab\s*(\d+|ii|iii)$/i.test(name) || /block|institute|department|polytechnic|library|admin/i.test(text)) return 'Academic blocks';
-  if (/hostel|boys wings|the street|\bwing\s*[ivx\d]+\b|ganga|yamuna|godawari|godavari|kalpan/i.test(text) || tags.tourism === 'hostel' || tags.guest_house === 'hostel') return 'Hostels';
+  if (/hostel|boys wings|the street|\bwing\s*[ivx\d]+\b|ganga|yamuna|godawri|godawari|godavari|sarvapalli|hari das|kalpan|k\.c\. girls/i.test(text) || tags.tourism === 'hostel' || tags.guest_house === 'hostel') return 'Hostels';
   if (/ground|court|track|sports|park|arena/i.test(text) || tags.leisure || tags.sport) return 'Grounds';
   if (/canteen|mess|subway|cafe|restaurant|food/i.test(text) || ['cafe', 'restaurant', 'fast_food'].includes(tags.amenity)) return 'Food & dining';
   if (/dispensary|medical|clinic|hospital|aarogyam/i.test(text) || ['clinic', 'hospital', 'doctors'].includes(tags.amenity)) return 'Health';
@@ -256,7 +259,7 @@ export function parseOpenStreetMapElements(elements) {
       || tags.tourism === 'hostel'
       || tags.guest_house === 'hostel'
       || tags.leisure === 'park'
-      || /^(ab\s|ab\d|boys wings|girls hostel|i&j|kc ground|ninad ground|main canteen|gd subway|dispans?ery|ganga|yamuna|godawari|godavari|kalpan|wing\s*[ivx\d]+|[fghx] block|[ij] block)/i.test(rawName);
+      || /^(ab\s|ab\d|boys wings|girls hostel|i&j|kc ground|ninad ground|main canteen|gd subway|dispans?ery|ganga|yamuna|godawri|godawari|godavari|sarvapalli|hari das|kalpan|k\.c\. girls|wing\s*[ivx\d]+|[fghx] block|[ij] block)/i.test(rawName);
 
     let name = rawName;
     if (/^ab\s*ii$/i.test(rawName)) name = 'AB2 — Academic Block II';
