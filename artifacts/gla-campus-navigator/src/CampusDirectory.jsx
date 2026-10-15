@@ -6,6 +6,7 @@ import {
   OFFICIAL_SPORTS,
   OFFICIAL_TOURS,
   loadCampusIndex,
+  normalizeName,
 } from './campus-directory-data.js';
 import './campus-directory.css';
 
@@ -62,50 +63,31 @@ function CampusDirectory({ onClose, onSelectPlace }) {
       lat: place.lat,
       lon: place.lon,
       campusLikely: place.campusLikely,
-      source: 'OpenStreetMap',
+      approx: Boolean(place.approx),
+      detail: place.approx ? place.subtitle : undefined,
+      source: place.approx ? 'GLA published name' : 'OpenStreetMap',
       url: place.osmType && place.osmId
         ? `https://www.openstreetmap.org/${place.osmType}/${place.osmId}`
         : `https://www.openstreetmap.org/search?query=${encodeURIComponent(`${place.name} GLA University`)}`,
       tags: place.tags,
     }));
-    const sports = OFFICIAL_SPORTS.map((place) => ({
-      id: `gla-sport-${place.name}`,
-      ...place,
-      campusLikely: true,
-      sourceUrl: OFFICIAL_SOURCES.sports,
-      locationMissing: true,
-    }));
-    const hostels = [
-      {
-        id: 'gla-boys-hostels',
-        name: 'Boys’ hostels — 15 total (GLA-published count)',
-        category: 'Hostels',
+    const known = new Set((index.places || []).map((place) => normalizeName(place.name)));
+    const sports = OFFICIAL_SPORTS
+      .filter((place) => ![...known].some((key) => key && (key === normalizeName(place.name) || key.startsWith(normalizeName(place.name)))))
+      .map((place) => ({
+        id: `gla-sport-${place.name}`,
+        ...place,
         campusLikely: true,
+        sourceUrl: OFFICIAL_SOURCES.sports,
         locationMissing: true,
-        source: 'GLA Hostel page',
-        detail: 'OpenStreetMap labels one “BOYS WINGS” area; individual hostel names and 15 separate pins are not published there.',
-        sourceUrl: OFFICIAL_SOURCES.hostel,
-        mapsQuery: 'Boys Hostel GLA University Mathura',
-      },
-      {
-        id: 'gla-girls-hostels',
-        name: 'Girls’ hostels — 4 total (GLA-published count)',
-        category: 'Hostels',
-        campusLikely: true,
-        locationMissing: true,
-        source: 'GLA Hostel page',
-        detail: 'OpenStreetMap labels one “Girls Hostel” area; individual hostel names and four separate pins are not published there.',
-        sourceUrl: OFFICIAL_SOURCES.hostel,
-        mapsQuery: 'Girls Hostel GLA University Mathura',
-      },
-    ];
+      }));
     const tours = OFFICIAL_TOURS.map((tour) => ({
       id: `gla-tour-${tour.name}`,
       ...tour,
       campusLikely: true,
       source: 'GLA official virtual tour',
     }));
-    return [...mapped, ...hostels, ...sports, ...tours];
+    return [...mapped, ...sports, ...tours];
   }, [index]);
 
   const visibleRecords = useMemo(() => {
@@ -188,6 +170,7 @@ function CampusDirectory({ onClose, onSelectPlace }) {
                       <b>{item.name}</b>
                       <small>{item.category}{item.rawName && item.rawName !== item.name ? ` · map label: ${item.rawName}` : ''}</small>
                       {item.detail && <small className="campus-directory-detail">{item.detail}</small>}
+                      {item.approx && <small className="campus-directory-missing">≈ Approximate location — official name is confirmed, exact map pin is not verified yet.</small>}
                       {item.locationMissing && <small className="campus-directory-missing">No individual public map pin — showing the official listing, not a guessed location.</small>}
                       {!item.campusLikely && <small className="campus-directory-missing">Nearby public map feature; campus membership needs verification.</small>}
                     </span>
@@ -206,7 +189,7 @@ function CampusDirectory({ onClose, onSelectPlace }) {
           <aside className="campus-directory-aside">
             <section className="campus-source-card hostel-source-card">
               <div className="campus-source-heading"><Building2 size={16}/><b>Hostel coverage</b></div>
-              <p>GLA’s current hostel page gives the total count and grouped hostel tours, not the names and coordinates of every individual hostel block.</p>
+              <p>All 4 girls’ hostels (Ganga, Yamuna, Godawari, Kalpana Chawla) and the boys’ hostels (F–J &amp; X Blocks, Wings I–V and the named hostels) are listed. Hostel names come from GLA’s published listings; pins marked ≈ are approximate until OpenStreetMap maps the exact building.</p>
               <a href={OFFICIAL_SOURCES.hostel} target="_blank" rel="noreferrer">GLA hostel details <ExternalLink size={13}/></a>
             </section>
             <section className="campus-source-card">

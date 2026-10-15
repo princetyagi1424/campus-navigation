@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Circle, MapContainer, Marker, Polyline, TileLayer, Tooltip, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { CAMPUS_PLACES } from './campus-directory-data.js';
+import { CAMPUS_PLACES, labelablePlaces } from './campus-directory-data.js';
 
 const CAMPUS_CENTER = [27.605, 77.594];
 
@@ -73,17 +73,21 @@ function MapEvents({ pickMode, onPick }) {
   return null;
 }
 
-function SyncViewport({ route, mapPoint, focusKey }) {
+function SyncViewport({ route, mapPoint, focusKey, navActive, userPosition }) {
   const map = useMap();
 
   useEffect(() => {
+    if (navActive) {
+      if (userPosition) map.setView(userPosition, Math.max(map.getZoom(), 18), { animate: true });
+      return;
+    }
     const routePoints = route?.coordinates?.filter((point) => point?.length === 2) || [];
     if (routePoints.length > 1) {
       map.fitBounds(routePoints, { padding: [72, 72], maxZoom: 19 });
     } else if (mapPoint) {
       map.flyTo(mapPoint, 18, { duration: 0.8 });
     }
-  }, [map, route, mapPoint, focusKey]);
+  }, [map, route, mapPoint, focusKey, navActive, userPosition]);
 
   return null;
 }
@@ -109,6 +113,9 @@ export default function LeafletCampusMap({
   focusKey,
   pickMode,
   onPick,
+  places = CAMPUS_PLACES,
+  userPosition = null,
+  navActive = false,
 }) {
   return (
     <MapContainer
@@ -125,9 +132,9 @@ export default function LeafletCampusMap({
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
       <MapEvents pickMode={pickMode} onPick={onPick} />
-      <SyncViewport route={route} mapPoint={mapPoint} focusKey={focusKey} />
+      <SyncViewport route={route} mapPoint={mapPoint} focusKey={focusKey} navActive={navActive} userPosition={userPosition} />
 
-      {CAMPUS_PLACES.map((place) => (
+      {labelablePlaces(places).map((place) => (
         <Marker
           key={place.id}
           position={[place.lat, place.lon]}
@@ -148,6 +155,9 @@ export default function LeafletCampusMap({
       )}
       {from && gpsAccuracy > 0 && (
         <Circle center={from} radius={gpsAccuracy} pathOptions={{ color: '#326ff0', fillColor: '#326ff0', fillOpacity: 0.1, weight: 1.5 }} />
+      )}
+      {navActive && userPosition && (
+        <Circle center={userPosition} radius={6} pathOptions={{ color: '#fff', fillColor: '#2268f5', fillOpacity: 1, weight: 3 }} />
       )}
       {from && <Marker position={from} icon={startIcon} title="Starting point" />}
       {to && <Marker position={to} icon={destinationIcon} title="Destination" />}

@@ -7,7 +7,7 @@ export const haversine = (a, b) => {
 
 export function nodeDistance(a, b) { return haversine([a.lat, a.lon], [b.lat, b.lon]); }
 
-export function nearestGraphNode(point, graph, maxDistance = 80) {
+export function nearestGraphNode(point, graph, maxDistance = 200) {
   let best = null, bestDistance = Infinity;
   for (const [id, node] of graph.nodes) {
     if (!graph.adj.has(id)) continue;
@@ -108,4 +108,45 @@ export function graphInstructions(coords) {
   steps[steps.length - 1].distance = segmentDistance;
   steps.push({ text: 'You have arrived at your destination', distance: 0 });
   return steps.filter((s, i) => s.distance > 2 || i === steps.length - 1);
+}
+
+export function polylineLength(coords) {
+  let total = 0;
+  for (let i = 1; i < coords.length; i++) total += haversine(coords[i - 1], coords[i]);
+  return total;
+}
+
+/**
+ * Projects a live position onto a route polyline (coords are [lat, lon]).
+ * Search starts at `fromIndex` so progress never jumps backwards on loops or parallel paths.
+ * Returns the snapped point, the segment index it lies on, how far the walker is from the
+ * route (metres) and how much of the route is still ahead (metres).
+ */
+export function projectOnRoute(position, coords, fromIndex = 0) {
+  if (!coords || coords.length < 2) return { index: 0, point: position, offRoute: 0, remaining: 0 };
+  const rad = Math.PI / 180;
+  const cosLat = Math.cos(position[0] * rad);
+  const toXY = ([lat, lon]) => [(lon - position[1]) * rad * 6371000 * cosLat, (lat - position[0]) * rad * 6371000];
+  let best = null;
+  const first = Math.max(0, Math.min(fromIndex, coords.length - 2));
+  for (let i = first; i < coords.length - 1; i++) {
+    const [ax, ay] = toXY(coords[i]);
+    const [bx, by] = toXY(coords[i + 1]);
+    const dx = bx - ax, dy = by - ay;
+    const len2 = dx * dx + dy * dy;
+    const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, (-ax * dx + -ay * dy) / len2));
+    const px = ax + t * dx, py = ay + t * dy;
+    const dist = Math.hypot(px, py);
+    if (!best || dist < best.dist - 0.01) best = { i, t, dist };
+  }
+  const a = coords[best.i], b = coords[best.i + 1];
+  const point = [a[0] + (b[0] - a[0]) * best.t, a[1] + (b[1] - a[1]) * best.t];
+  const remaining = haversine(point, b) + polylineLength(coords.slice(best.i + 1));
+  return { index: best.i, point, offRoute: best.dist, remaining };
+}
+
+/** The part of the route still ahead: snapped point first, then the untravelled vertices. */
+export function trimRoute(coords, projection) {
+  if (!coords || coords.length < 2 || !projection) return coords;
+  return [projection.point, ...coords.slice(projection.index + 1)];
 }
